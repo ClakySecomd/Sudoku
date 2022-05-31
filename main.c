@@ -22,24 +22,30 @@ void setconfig(field *sudoku)
     }
 }
 
+int counter(int a[]){
+    if(a[1] != 1 || a[2] != 1 || a[3] != 1 || a[4] != 1|| a[5] != 1
+     || a[6] != 1 || a[7] != 1 || a[8] != 1 || a[9] != 1)
+       return 0;
+
+    return 1;
+}
+
 int doubleinfield(field x)
 {
     int br[10];
+
+    for(int i = 0;i < 10;i++)
+        br[i] = 0;
     
     for(int j = 0;j < 9;j++)
     {
         br[ abs(x.el[j]) ]++;
     }
 
-    // make this into a counter method
-    // and always pass it an array of elements
-    // which needs to be checked for duplicates
+    if(counter)
+        return 0;
 
-    if(br[1] != 1 || br[2] != 1 || br[3] != 1 || br[4] != 1|| br[5] != 1
-     || br[6] != 1 || br[7] != 1 || br[8] != 1 || br[9] != 1)
-       return 1;
-
-    return 0;
+    return 1;
 }
 
 int doubleincolumn(field *sudoku, int i)
@@ -61,7 +67,74 @@ int doubleincolumn(field *sudoku, int i)
     }
     
 
-    // we need a counter method
+    int a[10];
+
+    for(int i = 0;i < 10;i++)
+        a[i] = 0;
+
+    for(int c = 0;c < 3;c++)
+    {
+        a[ sudoku[i].el[c] ]++;
+        a[ sudoku[i].el[c+3] ]++;
+        a[ sudoku[i].el[c+6] ]++;
+
+        a[ sudoku[j].el[c] ]++;
+        a[ sudoku[j].el[c+3] ]++;
+        a[ sudoku[j].el[c+6] ]++;
+
+        a[ sudoku[k].el[c] ]++;
+        a[ sudoku[k].el[c+3] ]++;
+        a[ sudoku[k].el[c+6] ]++;
+
+        if( !counter(a) )
+            return 1;
+    }
+
+    return 0;
+}
+
+int doubleinrow(field *sudoku, int i)
+{
+    int j, k = i % 3;
+    if( k == 0 )
+    {
+        j = i + 1; k = i + 2;
+    }
+
+    else if(k == 1)
+    {
+        j = i - 1; k = i + 1;
+    }
+
+    else
+    {
+        j = i - 2; k = i - 1;
+    }
+
+    int a[10];
+
+    for(int i = 0;i < 10;i++)
+        a[i] = 0;
+
+    for(int c = 0;c < 7;c+=3)
+    {
+        a[ sudoku[i].el[c] ]++;
+        a[ sudoku[i].el[c+1] ]++;
+        a[ sudoku[i].el[c+2] ]++;
+
+        a[ sudoku[j].el[c] ]++;
+        a[ sudoku[j].el[c+1] ]++;
+        a[ sudoku[j].el[c+2] ]++;
+
+        a[ sudoku[k].el[c] ]++;
+        a[ sudoku[k].el[c+1] ]++;
+        a[ sudoku[k].el[c+2] ]++;
+
+        if( !counter(a) )
+            return 1;
+    }
+
+    return 0;
 }
 
 int interference(field *sudoku)
@@ -69,18 +142,20 @@ int interference(field *sudoku)
     for(int i = 0;i < 9;i++)
     {
         if( doubleinfield(sudoku[i]) )
-            return 0;
+            return 1;
         
+        if( (i == 5) || (i == 8) )
+        {
+            if( doubleincolumn(sudoku, i) )
+                return 1;
 
-        if( doubleincolumn(sudoku, i) )
-            return 0;
-
-        if( doubleinrow(sudoku, i) )
-            return 0;
+            if( doubleinrow(sudoku, i) )
+                return 1;
+        }
 
     }
 
-    return 1;
+    return 0;
 }
 
 int stepup(field *sudoku, int i, int j)
@@ -97,7 +172,7 @@ int stepup(field *sudoku, int i, int j)
 
         if( sudoku[i].el[j] == 10 )
         return 0;
-    } while(interference(sudoku) );
+    } while( interference(sudoku) );
     
     // the goal here is to try all possibilities
     // by increasing the number on which we are
@@ -125,17 +200,17 @@ int main(int argc, char *args[])
             int i = 0, j = 0;
             while(!feof(r))
             {
-                fscanf("%d", &sudoku[i].el[j]);
-                fscanf("%d", &sudoku[i].el[j+1]);
-                fscanf("%d", &sudoku[i].el[j+2]);
+                fscanf(r, "%d", &sudoku[i].el[j]);
+                fscanf(r, "%d", &sudoku[i].el[j+1]);
+                fscanf(r, "%d", &sudoku[i].el[j+2]);
 
-                fscanf("%d", &sudoku[i+1].el[j]);
-                fscanf("%d", &sudoku[i+1].el[j+1]);
-                fscanf("%d", &sudoku[i+1].el[j+2]);
+                fscanf(r, "%d", &sudoku[i+1].el[j]);
+                fscanf(r, "%d", &sudoku[i+1].el[j+1]);
+                fscanf(r, "%d", &sudoku[i+1].el[j+2]);
 
-                fscanf("%d", &sudoku[i+2].el[j]);
-                fscanf("%d", &sudoku[i+2].el[j+1]);
-                fscanf("%d", &sudoku[i+2].el[j+2]);
+                fscanf(r, "%d", &sudoku[i+2].el[j]);
+                fscanf(r, "%d", &sudoku[i+2].el[j+1]);
+                fscanf(r, "%d", &sudoku[i+2].el[j+2]);
 
                 j += 3;
 
@@ -163,10 +238,22 @@ int main(int argc, char *args[])
                         process(sudoku, w);
                         break;
                     }
+
+                    j++;
+                    if(j == 9)
+                    {
+                        i++; j = 0;
+                    }
                 }
                 else
                 {
                     stepback(sudoku, i, j);
+
+                    j--;
+                    if(j < 0)
+                    {
+                        i--; j = 0;
+                    }
                 }
             } while (eos(sudoku));
             
