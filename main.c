@@ -22,9 +22,9 @@ void setconfig(field *sudoku)
     }
 }
 
-int counter(int a[]){
-    if(a[1] != 1 || a[2] != 1 || a[3] != 1 || a[4] != 1|| a[5] != 1
-     || a[6] != 1 || a[7] != 1 || a[8] != 1 || a[9] != 1)
+int counter(int a[], int i){
+    if(a[1] != i || a[2] != i || a[3] != i || a[4] != i || a[5] != i
+     || a[6] != i || a[7] != i || a[8] != i || a[9] != i)
        return 0;
 
     return 1;
@@ -42,7 +42,7 @@ int doubleinfield(field x)
         br[ abs(x.el[j]) ]++;
     }
 
-    if(counter)
+    if( counter(br, 1) )
         return 0;
 
     return 1;
@@ -74,19 +74,19 @@ int doubleincolumn(field *sudoku, int i)
 
     for(int c = 0;c < 3;c++)
     {
-        a[ sudoku[i].el[c] ]++;
-        a[ sudoku[i].el[c+3] ]++;
-        a[ sudoku[i].el[c+6] ]++;
+        a[ abs(sudoku[i].el[c]) ]++;
+        a[ abs(sudoku[i].el[c+3]) ]++;
+        a[ abs(sudoku[i].el[c+6]) ]++;
 
-        a[ sudoku[j].el[c] ]++;
-        a[ sudoku[j].el[c+3] ]++;
-        a[ sudoku[j].el[c+6] ]++;
+        a[ abs(sudoku[j].el[c]) ]++;
+        a[ abs(sudoku[j].el[c+3]) ]++;
+        a[ abs(sudoku[j].el[c+6]) ]++;
 
-        a[ sudoku[k].el[c] ]++;
-        a[ sudoku[k].el[c+3] ]++;
-        a[ sudoku[k].el[c+6] ]++;
+        a[ abs(sudoku[k].el[c]) ]++;
+        a[ abs(sudoku[k].el[c+3]) ]++;
+        a[ abs(sudoku[k].el[c+6]) ]++;
 
-        if( !counter(a) )
+        if( !counter(a, 1) )
             return 1;
     }
 
@@ -118,19 +118,19 @@ int doubleinrow(field *sudoku, int i)
 
     for(int c = 0;c < 7;c+=3)
     {
-        a[ sudoku[i].el[c] ]++;
-        a[ sudoku[i].el[c+1] ]++;
-        a[ sudoku[i].el[c+2] ]++;
+        a[ abs(sudoku[i].el[c]) ]++;
+        a[ abs(sudoku[i].el[c+1]) ]++;
+        a[ abs(sudoku[i].el[c+2]) ]++;
 
-        a[ sudoku[j].el[c] ]++;
-        a[ sudoku[j].el[c+1] ]++;
-        a[ sudoku[j].el[c+2] ]++;
+        a[ abs(sudoku[j].el[c]) ]++;
+        a[ abs(sudoku[j].el[c+1]) ]++;
+        a[ abs(sudoku[j].el[c+2]) ]++;
 
-        a[ sudoku[k].el[c] ]++;
-        a[ sudoku[k].el[c+1] ]++;
-        a[ sudoku[k].el[c+2] ]++;
+        a[ abs(sudoku[k].el[c]) ]++;
+        a[ abs(sudoku[k].el[c+1]) ]++;
+        a[ abs(sudoku[k].el[c+2]) ]++;
 
-        if( !counter(a) )
+        if( !counter(a, 1) )
             return 1;
     }
 
@@ -180,6 +180,37 @@ int stepup(field *sudoku, int i, int j)
     // with other numbers
 
     return 1;
+}
+
+int completeconfig(field *sudoku)
+{
+    int br[10];
+
+    for(int i = 0;i < 10;i++)
+        br[i] = 0;
+
+    for(int i = 0;i < 9;i++)
+    {
+        for(int j = 0;j < 9;j++)
+            br[ abs(sudoku[i].el[j])]++;
+        
+    }
+
+    if( counter(br, 9) )
+        return 1;
+
+    return 0;
+}
+
+void writeout(field *sudoku, FILE *w)
+{
+    /*
+    *  1 2 3 | 4 5 6 | 7 8 9
+    *  1 2 3 | 4 5 6 | 7 8 9
+    *  1 2 3 | 4 5 6 | 7 8 9
+    *  ---------------------
+    *  ... output like this ... 
+    */
 }
 
 int main(int argc, char *args[])
@@ -233,9 +264,9 @@ int main(int argc, char *args[])
                 
                 if( stepup(sudoku, i, j) )
                 {
-                    if( completeconfig(sudoku, i, j) )
+                    if( completeconfig(sudoku) )
                     {
-                        process(sudoku, w);
+                        writeout(sudoku, w);
                         break;
                     }
 
