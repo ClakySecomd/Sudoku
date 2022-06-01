@@ -23,8 +23,8 @@ void setconfig(field *sudoku)
 }
 
 int counter(int a[], int i){
-    if(a[1] != i || a[2] != i || a[3] != i || a[4] != i || a[5] != i
-     || a[6] != i || a[7] != i || a[8] != i || a[9] != i)
+    if(a[1] > i || a[2] > i || a[3] > i || a[4] > i || a[5] > i
+     || a[6] > i || a[7] > i || a[8] > i || a[9] > i)
        return 0;
 
     return 1;
@@ -211,6 +211,41 @@ void writeout(field *sudoku, FILE *w)
     *  ---------------------
     *  ... output like this ... 
     */
+
+    for(int i = 0;i < 9;i+=3)
+    {
+        for(int j = 0;j < 9;j+=3)
+        {
+            fprintf(w, " %d", sudoku[i].el[j]);
+            fprintf(w, " %d", sudoku[i].el[j+1]);
+            fprintf(w, " %d", sudoku[i].el[j+2]);
+
+            fprintf(w, " |");
+
+            fprintf(w, " %d", sudoku[i+1].el[j]);
+            fprintf(w, " %d", sudoku[i+1].el[j+1]);
+            fprintf(w, " %d", sudoku[i+1].el[j+2]);
+
+            fprintf(w, " |");
+
+            fprintf(w, " %d", sudoku[i+2].el[j]);
+            fprintf(w, " %d", sudoku[i+2].el[j+1]);
+            fprintf(w, " %d\n", sudoku[i+2].el[j+2]);
+        }
+
+        if( i != 6 )
+            fprintf(w, "-----------------------");
+    }
+}
+
+void stepback(field *sudoku, int i, int j)
+{
+    sudoku[i].el[j] = 0;
+}
+
+int eos(int i)
+{
+    return (i == -1);
 }
 
 int main(int argc, char *args[])
@@ -280,14 +315,17 @@ int main(int argc, char *args[])
                 {
                     stepback(sudoku, i, j);
 
-                    j--;
-                    if(j < 0)
-                    {
-                        i--; j = 0;
-                    }
+                    if(j == 0)
+                        i--;
+
+                    else
+                        j--;
                 }
-            } while (eos(sudoku));
+            } while ( !eos(i) );
             
+
+            fclose(w);
+            fclose(r);
         }
     }
     else if( argc == 1 )
