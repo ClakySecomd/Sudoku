@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 
 typedef struct tbl{
     int el[9];
@@ -245,18 +246,55 @@ void stepback(field *sudoku, int i, int j)
 
 int eos(int i)
 {
-    return (i == -1);
+    return (i == -1) || (i == 10);
+}
+
+void backtrack(field *sudoku, int lim)
+{
+    setconfig(sudoku);
+
+    int i = 0, j = 0, br = 0;
+    do
+    {
+                
+        if( stepup(sudoku, i, j) )
+        {
+            if( completeconfig(sudoku) )
+            {
+                br++;
+                
+                if( br == lim )
+                    break;
+            }
+
+            j++;
+            if(j == 9)
+            {
+                i++; j = 0;
+            }
+        }
+        else
+        {
+            stepback(sudoku, i, j);
+
+            if(j == 0)
+                i--;
+
+            else
+                j--;
+        }
+    } while ( !eos(i) );
 }
 
 int main(int argc, char *args[])
 {
-    if( argc == 2 )
+    if( argc == 3 )
     {
         // in this case we have two file names
         // one file contains the puzzle
         // the other is uset to print the answer
 
-        if( (access(args[0], 0) == 0) && (access(args[1], 0) == 0) )
+        if( (access(args[1], 0) == 0) && (access(args[2], 0) == 0) )
         {
             FILE *r = fopen(args[0], "r");
             FILE *w = fopen(args[1], "w");
@@ -291,50 +329,47 @@ int main(int argc, char *args[])
             // we are done with input
 
             // solving sudoku with backtrack...
-            setconfig(sudoku);
-
-            i = 0;  j = 0;
-            do
-            {
-                
-                if( stepup(sudoku, i, j) )
-                {
-                    if( completeconfig(sudoku) )
-                    {
-                        writeout(sudoku, w);
-                        break;
-                    }
-
-                    j++;
-                    if(j == 9)
-                    {
-                        i++; j = 0;
-                    }
-                }
-                else
-                {
-                    stepback(sudoku, i, j);
-
-                    if(j == 0)
-                        i--;
-
-                    else
-                        j--;
-                }
-            } while ( !eos(i) );
             
+            backtrack(sudoku, 1);
+            
+            writeout(sudoku, w);
 
             fclose(w);
             fclose(r);
         }
     }
-    else if( argc == 1 )
+    else if( argc == 2 )
     {
         // in this case we have a one file
         // this file will be used to
         // print the puzzle the app created
 
-        // creating puzzle algo...
+        FILE *w = fopen("write.txt", "w");
+
+        srand(time(0));
+        int lim = rand();
+
+        field *sudoku = malloc(9 * sizeof(field));
+
+        backtrack(sudoku, lim);  
+
+        // now we have a completed sudoku board
+        // we need to remove some numbers from it
+
+        int i, j;
+
+        do
+        {
+            i = rand() / 238609295;
+            j = rand() / 238609295;
+
+            sudoku[i].el[j] = 0;
+            sudoku[j].el[i] = 0;
+            // we remove the mirrored pair
+        } while ( isunique(sudoku) );
+
+        writeout(sudoku, w);
+        
     }
     else
     {
