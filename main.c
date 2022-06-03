@@ -286,6 +286,45 @@ void backtrack(field *sudoku, int lim)
     } while ( !eos(i) );
 }
 
+field *copy(field *sudoku)
+{
+    field *tmp = malloc(9 * sizeof(field));
+
+    for(int i = 0;i < 9;i++)
+    {
+        for(int j = 0;j < 9;j++)
+        {
+            tmp[i].el[j] = sudoku[i].el[j];
+        }
+    }
+
+    return tmp;
+}
+
+int isunique(field *sudoku)
+{
+    int br = 0;
+
+    // now we need to count how
+    // many solutions does this
+    // sudoku puzzle have
+    // if there is only one
+    // it is unique
+
+    field *testboard = copy(sudoku);
+
+    backtrack(testboard, 2);
+
+    if( interference(testboard) )
+    {
+        free(testboard);
+        return 1;
+    }
+
+    free(testboard);
+    return 0;
+}
+
 int main(int argc, char *args[])
 {
     if( argc == 3 )
@@ -334,6 +373,8 @@ int main(int argc, char *args[])
             
             writeout(sudoku, w);
 
+            free(sudoku);
+
             fclose(w);
             fclose(r);
         }
@@ -357,24 +398,39 @@ int main(int argc, char *args[])
         // we need to remove some numbers from it
 
         int i, j;
+        int tmp1, tmp2;
 
         do
         {
             i = rand() / 238609295;
             j = rand() / 238609295;
 
+            tmp1 = sudoku[i].el[j];
             sudoku[i].el[j] = 0;
+
+            tmp2 = sudoku[j].el[i];
             sudoku[j].el[i] = 0;
             // we remove the mirrored pair
         } while ( isunique(sudoku) );
 
+        sudoku[i].el[j] = tmp1;
+        sudoku[j].el[i] = tmp2;
+
         writeout(sudoku, w);
         
+        free(sudoku);
+
+        fclose(w);
     }
     else
     {
         // in this case we will print 
         // how can this application be called
+
+        printf("GENERAL SYNTAX ERROR!   \n");
+        printf("This application is called using the following template:\n");
+        printf("./sudoku [FILE] FILE\n");
+        printf("Input file is optional, while the output file isn't...\n");
     }
 
     return 0;
