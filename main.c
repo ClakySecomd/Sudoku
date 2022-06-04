@@ -16,9 +16,7 @@ void setconfig(field *sudoku)
     {
         for(int j = 0;j < 9;j++){
             if( sudoku[i].el[j] != 0 )
-            {
                 sudoku[i].el[j] = -sudoku[i].el[j];
-            }
         }
     }
 }
@@ -145,7 +143,7 @@ int interference(field *sudoku)
         if( doubleinfield(sudoku[i]) )
             return 1;
         
-        if( (i == 5) || (i == 8) )
+        if( (i == 0) || (i == 4) || (i == 8) )
         {
             if( doubleincolumn(sudoku, i) )
                 return 1;
@@ -235,13 +233,14 @@ void writeout(field *sudoku, FILE *w)
         }
 
         if( i != 6 )
-            fprintf(w, "-----------------------");
+            fprintf(w, "-----------------------\n");
     }
 }
 
 void stepback(field *sudoku, int i, int j)
 {
-    sudoku[i].el[j] = 0;
+    if(sudoku[i].el[j] > 0)
+        sudoku[i].el[j] = 0;
 }
 
 int eos(int i)
@@ -272,16 +271,41 @@ void backtrack(field *sudoku, int lim)
             {
                 i++; j = 0;
             }
+
+            while( sudoku[i].el[j] < 0 )
+            {
+                j++;
+
+                if(j == 9)
+                {
+                    i++; j = 0;
+                }
+            }
         }
         else
         {
             stepback(sudoku, i, j);
 
             if(j == 0)
+            {
                 i--;
+                j = 8;
+            }
 
             else
                 j--;
+
+            while( sudoku[i].el[j] < 0)
+            {
+                if(j == 0)
+                {
+                    i--;
+                    j = 8;
+                }
+
+                else
+                    j--;
+            }        
         }
     } while ( !eos(i) );
 }
@@ -335,8 +359,8 @@ int main(int argc, char *args[])
 
         if( (access(args[1], 0) == 0) && (access(args[2], 0) == 0) )
         {
-            FILE *r = fopen(args[0], "r");
-            FILE *w = fopen(args[1], "w");
+            FILE *r = fopen(args[1], "r");
+            FILE *w = fopen(args[2], "w");
 
             field *sudoku = malloc(9 * sizeof(field));
 
@@ -372,6 +396,7 @@ int main(int argc, char *args[])
             backtrack(sudoku, 1);
             
             writeout(sudoku, w);
+            printf("Found the solution successfully...\n");
 
             free(sudoku);
 
@@ -385,12 +410,18 @@ int main(int argc, char *args[])
         // this file will be used to
         // print the puzzle the app created
 
-        FILE *w = fopen("write.txt", "w");
+        FILE *w = fopen(args[1], "w");
 
         srand(time(0));
         int lim = rand();
 
         field *sudoku = malloc(9 * sizeof(field));
+
+        for(int i = 0;i < 9;i++)
+        {
+            for(int j = 0;j < 9;j++)
+                sudoku[i].el[j] = 0;
+        }
 
         backtrack(sudoku, lim);  
 
@@ -417,7 +448,8 @@ int main(int argc, char *args[])
         sudoku[j].el[i] = tmp2;
 
         writeout(sudoku, w);
-        
+        printf("Created a puzzle successfully...\n");
+
         free(sudoku);
 
         fclose(w);
