@@ -9,6 +9,42 @@ typedef struct tbl{
 // sudoku puzzle contains
 // 9 fields
 
+field *sboard;
+field *tmp;
+// these are the main board
+// and the variable used to
+// copy values on the board
+
+
+void sprint(field *board)
+{
+    for(int i = 0;i < 9;i+=3)
+    {
+        for(int j = 0;j < 9;j+=3)
+        {
+            printf(" %d", board[i].el[j]);
+            printf(" %d", board[i].el[j+1]);
+            printf(" %d", board[i].el[j+2]);
+  
+            printf(" |");
+
+            printf(" %d", board[i+1].el[j]);
+            printf(" %d", board[i+1].el[j+1]);
+            printf(" %d", board[i+1].el[j+2]);
+
+            printf(" |");
+
+            printf(" %d", board[i+2].el[j]);
+            printf(" %d", board[i+2].el[j+1]);
+            printf(" %d\n", board[i+2].el[j+2]);
+        }
+
+        if( i != 6 )
+            printf("-----------------------\n");
+    }
+}
+// this is used to print the
+// values on the board
 
 void setconfig(field *sudoku)
 {
@@ -29,16 +65,16 @@ int counter(int a[], int i){
     return 1;
 }
 
-int doubleinfield(field x)
+int doubleinfield(field *sudoku, int i)
 {
     int br[10];
 
-    for(int i = 0;i < 10;i++)
-        br[i] = 0;
+    for(int n = 0;n < 10;n++)
+        br[n] = 0;
     
     for(int j = 0;j < 9;j++)
     {
-        br[ abs(x.el[j]) ]++;
+        br[ abs(sudoku[i].el[j]) ]++;
     }
 
     if( counter(br, 1) )
@@ -68,11 +104,11 @@ int doubleincolumn(field *sudoku, int i)
 
     int a[10];
 
-    for(int i = 0;i < 10;i++)
-        a[i] = 0;
-
     for(int c = 0;c < 3;c++)
     {
+        for(int n = 0;n < 10;n++)
+            a[n] = 0;
+
         a[ abs(sudoku[i].el[c]) ]++;
         a[ abs(sudoku[i].el[c+3]) ]++;
         a[ abs(sudoku[i].el[c+6]) ]++;
@@ -94,13 +130,13 @@ int doubleincolumn(field *sudoku, int i)
 
 int doubleinrow(field *sudoku, int i)
 {
-    int j, k = i % 3;
-    if( k == 0 )
+    int j, k;
+    if( (i == 0) || (i == 3) || (i == 6) )
     {
         j = i + 1; k = i + 2;
     }
 
-    else if(k == 1)
+    else if( (i == 1) || (i == 4) || (i == 7) )
     {
         j = i - 1; k = i + 1;
     }
@@ -112,25 +148,27 @@ int doubleinrow(field *sudoku, int i)
 
     int a[10];
 
-    for(int i = 0;i < 10;i++)
-        a[i] = 0;
 
-    for(int c = 0;c < 7;c+=3)
+    for(int r = 0;r < 7;r+=3)
     {
-        a[ abs(sudoku[i].el[c]) ]++;
-        a[ abs(sudoku[i].el[c+1]) ]++;
-        a[ abs(sudoku[i].el[c+2]) ]++;
+        for(int n = 0;n < 10;n++)
+            a[n] = 0;
 
-        a[ abs(sudoku[j].el[c]) ]++;
-        a[ abs(sudoku[j].el[c+1]) ]++;
-        a[ abs(sudoku[j].el[c+2]) ]++;
+        a[ abs(sudoku[i].el[r]) ]++;
+        a[ abs(sudoku[i].el[r+1]) ]++;
+        a[ abs(sudoku[i].el[r+2]) ]++;
 
-        a[ abs(sudoku[k].el[c]) ]++;
-        a[ abs(sudoku[k].el[c+1]) ]++;
-        a[ abs(sudoku[k].el[c+2]) ]++;
+        a[ abs(sudoku[j].el[r]) ]++;
+        a[ abs(sudoku[j].el[r+1]) ]++;
+        a[ abs(sudoku[j].el[r+2]) ]++;
+
+        a[ abs(sudoku[k].el[r]) ]++;
+        a[ abs(sudoku[k].el[r+1]) ]++;
+        a[ abs(sudoku[k].el[r+2]) ]++;
 
         if( !counter(a, 1) )
             return 1;
+
     }
 
     return 0;
@@ -140,13 +178,14 @@ int interference(field *sudoku)
 {
     for(int i = 0;i < 9;i++)
     {
-        if( doubleinfield(sudoku[i]) )
+        if( doubleinfield(sudoku, i) )
             return 1;
         
         if( (i == 0) || (i == 4) || (i == 8) )
         {
             if( doubleincolumn(sudoku, i) )
                 return 1;
+
 
             if( doubleinrow(sudoku, i) )
                 return 1;
@@ -159,24 +198,31 @@ int interference(field *sudoku)
 
 int stepup(field *sudoku, int i, int j)
 {
-    if( sudoku[i].el[j] == 10 )
-        return 0;
-    //this is the end
 
     do
     {
+
         if( sudoku[i].el[j] >= 0 )
             sudoku[i].el[j]++;
         
 
         if( sudoku[i].el[j] == 10 )
-        return 0;
+            return 0;
     } while( interference(sudoku) );
     
     // the goal here is to try all possibilities
     // by increasing the number on which we are
     // and then letting the program continue
     // with other numbers
+
+    return 1;
+}
+
+int countercompleteconfig(int a[])
+{
+    if(a[1] != 9 || a[2] != 9 || a[3] != 9 || a[4] != 9 || a[5] != 9
+     || a[6] != 9 || a[7] != 9 || a[8] != 9 || a[9] != 9)
+        return 0;
 
     return 1;
 }
@@ -191,17 +237,17 @@ int completeconfig(field *sudoku)
     for(int i = 0;i < 9;i++)
     {
         for(int j = 0;j < 9;j++)
-            br[ abs(sudoku[i].el[j])]++;
+            br[ abs(sudoku[i].el[j]) ]++;
         
     }
 
-    if( counter(br, 9) )
+    if( countercompleteconfig(br) )
         return 1;
 
     return 0;
 }
 
-void writeout(field *sudoku, FILE *w)
+void writeout(FILE *w)
 {
     /*
     *  1 2 3 | 4 5 6 | 7 8 9
@@ -215,21 +261,21 @@ void writeout(field *sudoku, FILE *w)
     {
         for(int j = 0;j < 9;j+=3)
         {
-            fprintf(w, " %d", sudoku[i].el[j]);
-            fprintf(w, " %d", sudoku[i].el[j+1]);
-            fprintf(w, " %d", sudoku[i].el[j+2]);
+            fprintf(w, " %d", abs( sboard[i].el[j]) );
+            fprintf(w, " %d", abs( sboard[i].el[j+1]) );
+            fprintf(w, " %d", abs( sboard[i].el[j+2]) );
 
             fprintf(w, " |");
 
-            fprintf(w, " %d", sudoku[i+1].el[j]);
-            fprintf(w, " %d", sudoku[i+1].el[j+1]);
-            fprintf(w, " %d", sudoku[i+1].el[j+2]);
+            fprintf(w, " %d", abs( sboard[i+1].el[j]) );
+            fprintf(w, " %d", abs( sboard[i+1].el[j+1]) );
+            fprintf(w, " %d", abs( sboard[i+1].el[j+2]) );
 
             fprintf(w, " |");
 
-            fprintf(w, " %d", sudoku[i+2].el[j]);
-            fprintf(w, " %d", sudoku[i+2].el[j+1]);
-            fprintf(w, " %d\n", sudoku[i+2].el[j+2]);
+            fprintf(w, " %d", abs( sboard[i+2].el[j]) );
+            fprintf(w, " %d", abs( sboard[i+2].el[j+1]) );
+            fprintf(w, " %d\n", abs( sboard[i+2].el[j+2]) );
         }
 
         if( i != 6 )
@@ -253,33 +299,49 @@ void backtrack(field *sudoku, int lim)
     setconfig(sudoku);
 
     int i = 0, j = 0, br = 0;
+
+    while( (sudoku[i].el[j] < 0) && (i < 9) )
+    {
+        if(j == 8)
+        {
+            i++; j = 0;
+        }
+        else
+            j++;
+    }
+    // preproccesing in case there are 
+    // fixed numbers at the begining
+
     do
     {
-                
+
         if( stepup(sudoku, i, j) )
         {
+            
             if( completeconfig(sudoku) )
             {
                 br++;
                 
                 if( br == lim )
-                    break;
+                    return;
+                
             }
 
-            j++;
-            if(j == 9)
+            if(j == 8)
             {
                 i++; j = 0;
             }
-
-            while( sudoku[i].el[j] < 0 )
-            {
+            else
                 j++;
 
-                if(j == 9)
+            while( (sudoku[i].el[j] < 0) && (i < 9) )
+            {
+                if(j == 8)
                 {
                     i++; j = 0;
                 }
+                else
+                    j++;
             }
         }
         else
@@ -295,7 +357,7 @@ void backtrack(field *sudoku, int lim)
             else
                 j--;
 
-            while( sudoku[i].el[j] < 0)
+            while( (sudoku[i].el[j] < 0) && (i > -1) )
             {
                 if(j == 0)
                 {
@@ -310,43 +372,28 @@ void backtrack(field *sudoku, int lim)
     } while ( !eos(i) );
 }
 
-field *copy(field *sudoku)
+void copy()
 {
-    field *tmp = malloc(9 * sizeof(field));
 
     for(int i = 0;i < 9;i++)
     {
         for(int j = 0;j < 9;j++)
         {
-            tmp[i].el[j] = sudoku[i].el[j];
+            tmp[i].el[j] = sboard[i].el[j];
         }
     }
 
-    return tmp;
 }
 
-int isunique(field *sudoku)
+int isunique()
 {
-    int br = 0;
+    copy();
 
-    // now we need to count how
-    // many solutions does this
-    // sudoku puzzle have
-    // if there is only one
-    // it is unique
+    backtrack(tmp, 2);
 
-    field *testboard = copy(sudoku);
+    int bl = interference(tmp);
 
-    backtrack(testboard, 2);
-
-    if( interference(testboard) )
-    {
-        free(testboard);
-        return 1;
-    }
-
-    free(testboard);
-    return 0;
+    return !bl;
 }
 
 int main(int argc, char *args[])
@@ -362,28 +409,23 @@ int main(int argc, char *args[])
             FILE *r = fopen(args[1], "r");
             FILE *w = fopen(args[2], "w");
 
-            field *sudoku = malloc(9 * sizeof(field));
+            sboard = malloc(9 * sizeof(field));
+            tmp = malloc(9 * sizeof(field));
 
             int i = 0, j = 0;
+            char c;
             while(!feof(r))
             {
-                fscanf(r, "%d", &sudoku[i].el[j]);
-                fscanf(r, "%d", &sudoku[i].el[j+1]);
-                fscanf(r, "%d", &sudoku[i].el[j+2]);
-
-                fscanf(r, "%d", &sudoku[i+1].el[j]);
-                fscanf(r, "%d", &sudoku[i+1].el[j+1]);
-                fscanf(r, "%d", &sudoku[i+1].el[j+2]);
-
-                fscanf(r, "%d", &sudoku[i+2].el[j]);
-                fscanf(r, "%d", &sudoku[i+2].el[j+1]);
-                fscanf(r, "%d", &sudoku[i+2].el[j+2]);
+                fscanf(r, "%d %d %d %d %d %d %d %d %d",
+                &sboard[i].el[j], &sboard[i].el[j+1], &sboard[i].el[j+2],
+                &sboard[i+1].el[j], &sboard[i+1].el[j+1], &sboard[i+1].el[j+2],
+                &sboard[i+2].el[j], &sboard[i+2].el[j+1], &sboard[i+2].el[j+2]);
 
                 j += 3;
 
                 if( j == 9 )
                 {
-                    i += 1;
+                    i += 3;
                     j = 0;
                 }
             }
@@ -393,12 +435,13 @@ int main(int argc, char *args[])
 
             // solving sudoku with backtrack...
             
-            backtrack(sudoku, 1);
+            backtrack(sboard, 1);
             
-            writeout(sudoku, w);
+            writeout(w);
             printf("Found the solution successfully...\n");
 
-            free(sudoku);
+            free(sboard);
+            free(tmp);
 
             fclose(w);
             fclose(r);
@@ -415,42 +458,88 @@ int main(int argc, char *args[])
         srand(time(0));
         int lim = rand();
 
-        field *sudoku = malloc(9 * sizeof(field));
+        sboard = malloc(9 * sizeof(field));
+        tmp = malloc(9 * sizeof(field));
 
         for(int i = 0;i < 9;i++)
         {
             for(int j = 0;j < 9;j++)
-                sudoku[i].el[j] = 0;
+                sboard[i].el[j] = 0;
         }
-
-        backtrack(sudoku, lim);  
+    
+        backtrack(sboard, lim);  
 
         // now we have a completed sudoku board
         // we need to remove some numbers from it
 
-        int i, j;
+        int i = 0, j = 0;
+        int p = 8, q = 8;
         int tmp1, tmp2;
 
         do
         {
-            i = rand() / 238609295;
-            j = rand() / 238609295;
 
-            tmp1 = sudoku[i].el[j];
-            sudoku[i].el[j] = 0;
+            tmp1 = sboard[i].el[j];
+            sboard[i].el[j] = 0;
 
-            tmp2 = sudoku[j].el[i];
-            sudoku[j].el[i] = 0;
+            tmp2 = sboard[p].el[q];
+            sboard[p].el[q] = 0;
             // we remove the mirrored pair
-        } while ( isunique(sudoku) );
 
-        sudoku[i].el[j] = tmp1;
-        sudoku[j].el[i] = tmp2;
+            if(j == 8)
+            {
+                i++; j = 0;
+            }
+            else
+                j++;
 
-        writeout(sudoku, w);
+            if(q == 0)
+            {
+                p -= 3; q = 8;
+
+                switch (p)
+                {
+                case -1:
+                    p = 7;
+                    break;
+
+                case -2:
+                    p = 6;
+                    break;
+                
+                default:
+                    break;
+                }
+            }
+            else
+            {
+                q -= 3;
+
+                switch (q)
+                {
+                case -1:
+                    q = 7;
+                    break;
+
+                case -2:
+                    q = 6;
+                    break;
+                
+                default:
+                    break;
+                }                
+            }
+
+        } while ( isunique() || (i != p) );
+
+        sboard[i].el[j] = tmp1;
+        sboard[j].el[i] = tmp2;
+
+        writeout(w);
         printf("Created a puzzle successfully...\n");
 
-        free(sudoku);
+        free(sboard);
+        free(tmp);
 
         fclose(w);
     }
