@@ -21,3 +21,18 @@ The solving algorithm is based on a backtrack, that is why we set the first conf
 **6.** The method *writeout* writes the solved sudoku puzzle to the passed file
 
 **7.** The method *stepback* sets the number on which we stand to 0, and the returns one step back, so that the algorithm tries a different path this time (this is because *stepup* will immediately increase the number on which it stands by one)
+
+**8.** The method *sprint* is used to print the current configuration on the sudoku board to the console
+
+**9.** The method *countercompleteconfig* is a counter method which checks if all non-zero numbers appear on the board 9 times each
+
+**10.** The method *eos* stands for End Of Search, and it stops backtrack from accessing unallocated space
+- The reason why we don't stop the search when lim isn't 1 or 2 is because we don't want to stop the search before it tries all the possibilities, when it does it will fall back all the way to i = -1
+
+**11.** The method *backtrack* has the goal of finding the lim-th solution of the given puzzle
+
+**12.** The method *copy* copies the values from the board to the temporary variable
+
+**13.** The method *isunique* checks if the current setting on the board has only 1 solution, since backtrack changes the values on the board it passes a dummy copy
+
+**14.** The method *end* checks if the user has requested to end the player mode session

@@ -652,7 +652,8 @@ int main(int argc, char *args[])
 
         printf("GENERAL SYNTAX ERROR!   \n");
         printf("This application is called using the following template:\n");
-        printf("./sudoku [FILE] FILE\n");
+        printf("./sudoku [player] [FILE] FILE\n");
+        printf("String player is used to indicate that the user will be solving the puzzle\n");
         printf("Input file is optional, while the output file isn't...\n");
     }
 
