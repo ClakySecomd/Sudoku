@@ -289,9 +289,12 @@ void stepback(field *sudoku, int i, int j)
         sudoku[i].el[j] = 0;
 }
 
-int eos(int i)
+int eos(int i, int lim)
 {
-    return (i == -1) || (i == 10);
+    if( (lim == 1) || (lim == 2) )
+        return (i == -1) || (i == 10);
+
+    return i == -1;
 }
 
 void backtrack(field *sudoku, int lim)
@@ -315,7 +318,7 @@ void backtrack(field *sudoku, int lim)
     do
     {
 
-        if( stepup(sudoku, i, j) )
+        if( (i != 9) && stepup(sudoku, i, j) )
         {
             
             if( completeconfig(sudoku) )
@@ -346,6 +349,11 @@ void backtrack(field *sudoku, int lim)
         }
         else
         {
+            if(i == 9)
+            {
+                i = 8; j = 8;
+            }
+
             stepback(sudoku, i, j);
 
             if(j == 0)
@@ -369,7 +377,7 @@ void backtrack(field *sudoku, int lim)
                     j--;
             }        
         }
-    } while ( !eos(i) );
+    } while ( !eos(i, lim) );
 }
 
 void copy()
@@ -530,7 +538,7 @@ int main(int argc, char *args[])
                 }                
             }
 
-        } while ( isunique() || (i != p) );
+        } while ( isunique() && (i != p) );
 
         sboard[i].el[j] = tmp1;
         sboard[j].el[i] = tmp2;
