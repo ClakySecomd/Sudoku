@@ -418,6 +418,27 @@ int end(char in[])
     return 0;
 }
 
+void sread(field *sudoku, FILE *f)
+{
+    int i = 0, j = 0;
+    
+    while(!feof(f))
+    {
+        fscanf(f, "%d %d %d %d %d %d %d %d %d",
+        &sboard[i].el[j], &sboard[i].el[j+1], &sboard[i].el[j+2],
+        &sboard[i+1].el[j], &sboard[i+1].el[j+1], &sboard[i+1].el[j+2],
+        &sboard[i+2].el[j], &sboard[i+2].el[j+1], &sboard[i+2].el[j+2]);
+
+        j += 3;
+
+        if( j == 9 )
+        {
+            i += 3;
+            j = 0;
+        }
+    }
+}
+
 int main(int argc, char *args[])
 {
     if( argc == 3 )
@@ -434,27 +455,8 @@ int main(int argc, char *args[])
             sboard = malloc(9 * sizeof(field));
             tmp = malloc(9 * sizeof(field));
 
-            int i = 0, j = 0;
-            char c;
-            while(!feof(r))
-            {
-                fscanf(r, "%d %d %d %d %d %d %d %d %d",
-                &sboard[i].el[j], &sboard[i].el[j+1], &sboard[i].el[j+2],
-                &sboard[i+1].el[j], &sboard[i+1].el[j+1], &sboard[i+1].el[j+2],
-                &sboard[i+2].el[j], &sboard[i+2].el[j+1], &sboard[i+2].el[j+2]);
-
-                j += 3;
-
-                if( j == 9 )
-                {
-                    i += 3;
-                    j = 0;
-                }
-            }
+            sread(sboard, r);
             
-            // after this segment we know
-            // we are done with input
-
             // solving sudoku with backtrack...
             
             backtrack(sboard, 1);
@@ -480,23 +482,48 @@ int main(int argc, char *args[])
 
             sboard = malloc(9 * sizeof(field));
 
-            printf("Enter the beginning configuration of the sudoku puzzle...\n");
-
-            int tmp_value;
-            for(int i = 0;i < 9;i++)
+            int bl;
+            do{
+                printf("Press 1 if you want to pass a file with the puzzle\n");
+                printf("Or press 2 to insert the values yourself...\n");
+                scanf("%d", &bl);
+            }while( (bl != 1) || (bl != 2) );
+            bl--;
+            
+            if(bl)
             {
-                for(int j = 0;j < 9;j++)
+                printf("Enter the beginning configuration of the sudoku puzzle...\n");
+
+                int tmp_value;
+                for(int i = 0;i < 9;i++)
                 {
-                    scanf("%d", &tmp_value);
-
-                    while( (tmp_value < 0) || (tmp_value > 9) )
+                    for(int j = 0;j < 9;j++)
                     {
-                        printf("Inadequate value given... Try again...\n");
                         scanf("%d", &tmp_value);
-                    }
 
-                    sboard[i].el[j] = tmp_value;
+                        while( (tmp_value < 0) || (tmp_value > 9) )
+                        {
+                            printf("Inadequate value given... Try again...\n");
+                            scanf("%d", &tmp_value);
+                        }
+
+                        sboard[i].el[j] = tmp_value;
+                    }
                 }
+            }
+            else{
+                char file[256];
+                fgets(file, 256, stdin);
+
+                while(access(file, 0))
+                {
+                    printf("Cannot access this file, try another...\n");
+                    fgets(file, 256, stdin);
+                }
+
+                FILE *r = fopen(file, "r");
+
+                sread(sboard, r);
             }
 
             if(interference(sboard))
