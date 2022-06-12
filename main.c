@@ -468,6 +468,83 @@ int main(int argc, char *args[])
             fclose(w);
             fclose(r);
         }
+        // now the player can choose to play
+        // the puzzle with this application
+        // in that case on of the arguments
+        // has to be a file to which we
+        // can write the user's progress
+
+        else if( (access(args[1], 0) == 0) ^ (access(args[2], 0) == 0) )
+        {
+            FILE *w = (access(args[1], 0) == 0)?fopen(args[1], "w"):fopen(args[2], "w");
+
+            sboard = malloc(9 * sizeof(field));
+
+            printf("Enter the beginning configuration of the sudoku puzzle...\n");
+
+            int tmp_value;
+            for(int i = 0;i < 9;i++)
+            {
+                for(int j = 0;j < 9;j++)
+                {
+                    scanf("%d", &tmp_value);
+
+                    while( (tmp_value < 0) || (tmp_value > 9) )
+                    {
+                        printf("Inadequate value given... Try again...\n");
+                        scanf("%d", &tmp_value);
+                    }
+
+                    sboard[i].el[j] = tmp_value;
+                }
+            }
+
+            if(interference(sboard))
+            {
+                printf("This is not an adequate sudoku puzzle...\n");
+            }
+            else
+            {
+                printf("Now it's time to solve this puzzle. Good luck playerone...\n");
+                printf("Enter numbers coresponding to first the field, the the element, then the value...\n");
+                printf("To end this session type ext . . .\n");
+
+                char in[3];
+                int d[3];
+
+                do
+                {
+                    scanf("%c%c%c", &in[0], &in[1], &in[2]);
+
+                    d[0] = in[0] - '0';
+                    d[1] = in[1] - '0';
+                    d[2] = in[2] - '0';
+
+                    if( (d[0] > -1) && (d[0] < 10) )
+                    {
+                        if( (d[1] > -1) && (d[1] < 10) )
+                        {
+                            if( (d[2] > -1) && (d[2] < 10) )
+                            {
+                                if(sboard[d[0]].el[d[1]] == 0)
+                                    sboard[d[0]].el[d[1]] = d[2];
+                                else
+                                    printf("Invalid move!\n");
+                            }
+                        }
+                    }
+
+                } while (!end(in));
+                
+                printf("Saving present progress...\n");
+
+                writeout(w);
+            }
+
+            free(sboard);
+
+            fclose(w);
+        }
     }
     else if( argc == 2 )
     {
