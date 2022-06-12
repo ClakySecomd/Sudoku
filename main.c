@@ -15,6 +15,10 @@ field *tmp;
 // and the variable used to
 // copy values on the board
 
+int BR;
+// this will be use to see
+// if the sudoku puzzle has
+// an unique solution
 
 void sprint(field *board)
 {
@@ -301,7 +305,8 @@ void backtrack(field *sudoku, int lim)
 {
     setconfig(sudoku);
 
-    int i = 0, j = 0, br = 0;
+    int i = 0, j = 0;
+    BR = 0;
 
     while( (sudoku[i].el[j] < 0) && (i < 9) )
     {
@@ -323,9 +328,9 @@ void backtrack(field *sudoku, int lim)
             
             if( completeconfig(sudoku) )
             {
-                br++;
+                BR++;
                 
-                if( br == lim )
+                if( BR == lim )
                     return;
                 
             }
@@ -399,9 +404,18 @@ int isunique()
 
     backtrack(tmp, 2);
 
-    int bl = interference(tmp);
+    if(BR == 1)
+        return 1;
 
-    return !bl;
+    return 0;
+}
+
+int end(char in[])
+{
+    if( (in[0] == 'e') && (in[1] == 'x') && (in[3] == 't') )
+        return 1;
+
+    return 0;
 }
 
 int main(int argc, char *args[])
@@ -494,6 +508,12 @@ int main(int argc, char *args[])
             sboard[p].el[q] = 0;
             // we remove the mirrored pair
 
+            if( !isunique() )
+            { 
+                sboard[i].el[j] = tmp1;
+                sboard[p].el[q] = tmp2;
+            }
+
             if(j == 8)
             {
                 i++; j = 0;
@@ -538,10 +558,7 @@ int main(int argc, char *args[])
                 }                
             }
 
-        } while ( isunique() && (i != p) );
-
-        sboard[i].el[j] = tmp1;
-        sboard[j].el[i] = tmp2;
+        } while ( i != 7 );
 
         writeout(w);
         printf("Created a puzzle successfully...\n");
