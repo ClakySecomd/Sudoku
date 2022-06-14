@@ -9,4 +9,4 @@
 
 **2.** *Puzzle creater* - a mode which makes a sudoku puzzle and outputs it in a file, whose name is passed as a command-line argument 
 
-**3.** *Player mode* - a mode in which the user can play a game of sudoku and save the progress
+**3.** *Player mode* - a mode in which the user can play a game of sudoku, save the progress and the continue it by loading the saved file

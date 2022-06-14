@@ -410,9 +410,9 @@ int isunique()
     return 0;
 }
 
-int end(char in[])
+int end(int in[])
 {
-    if( (in[0] == 'e') && (in[1] == 'x') && (in[3] == 't') )
+    if( (in[0] == -1) && (in[1] == -1) && (in[2] == -1) )
         return 1;
 
     return 0;
@@ -420,22 +420,26 @@ int end(char in[])
 
 void sread(field *sudoku, FILE *f)
 {
-    int i = 0, j = 0;
+    int i = 0, j = 0, br = 0;
     
     while(!feof(f))
     {
-        fscanf(f, "%d %d %d %d %d %d %d %d %d",
-        &sboard[i].el[j], &sboard[i].el[j+1], &sboard[i].el[j+2],
-        &sboard[i+1].el[j], &sboard[i+1].el[j+1], &sboard[i+1].el[j+2],
-        &sboard[i+2].el[j], &sboard[i+2].el[j+1], &sboard[i+2].el[j+2]);
+        if(br % 4 != 3){
+            fscanf(f, "%d %d %d | %d %d %d | %d %d %d",
+            &sboard[i].el[j], &sboard[i].el[j+1], &sboard[i].el[j+2],
+            &sboard[i+1].el[j], &sboard[i+1].el[j+1], &sboard[i+1].el[j+2],
+            &sboard[i+2].el[j], &sboard[i+2].el[j+1], &sboard[i+2].el[j+2]);
 
-        j += 3;
+            j += 3;
 
-        if( j == 9 )
-        {
-            i += 3;
-            j = 0;
+            if( j == 9 )
+            {
+                i += 3;
+                j = 0;
+            }
         }
+        else
+            fscanf(f, "%*[^\n]\n");
     }
 }
 
@@ -478,16 +482,20 @@ int main(int argc, char *args[])
 
         else if( (access(args[1], 0) == 0) ^ (access(args[2], 0) == 0) )
         {
-            FILE *w = (access(args[1], 0) == 0)?fopen(args[1], "w"):fopen(args[2], "w");
+            FILE *w;
 
             sboard = malloc(9 * sizeof(field));
 
             int bl;
             do{
-                printf("Press 1 if you want to pass a file with the puzzle\n");
+                printf("Press 1 if you want grab the puzzle from the file\n");
                 printf("Or press 2 to insert the values yourself...\n");
                 scanf("%d", &bl);
-            }while( (bl != 1) || (bl != 2) );
+                
+                int c;
+                while ( (c = getchar()) != EOF && c != '\n') { }
+
+            }while( (bl != 1) && (bl != 2) );
             bl--;
             
             if(bl)
@@ -500,11 +508,11 @@ int main(int argc, char *args[])
                     for(int j = 0;j < 9;j++)
                     {
                         scanf("%d", &tmp_value);
-
+                        
                         while( (tmp_value < 0) || (tmp_value > 9) )
                         {
                             printf("Inadequate value given... Try again...\n");
-                            scanf("%d", &tmp_value);
+                            scanf("%d *[^\n]", &tmp_value);
                         }
 
                         sboard[i].el[j] = tmp_value;
@@ -512,19 +520,14 @@ int main(int argc, char *args[])
                 }
             }
             else{
-                char file[256];
-                fgets(file, 256, stdin);
+                w = (access(args[1], 0) == 0)?fopen(args[1], "r"):fopen(args[2], "r");
 
-                while(access(file, 0))
-                {
-                    printf("Cannot access this file, try another...\n");
-                    fgets(file, 256, stdin);
-                }
+                sread(sboard, w);
 
-                FILE *r = fopen(file, "r");
-
-                sread(sboard, r);
+                fclose(w);
             }
+
+            w = (access(args[1], 0) == 0)?fopen(args[1], "w"):fopen(args[2], "w");
 
             if(interference(sboard))
             {
@@ -534,19 +537,14 @@ int main(int argc, char *args[])
             {
                 printf("Now it's time to solve this puzzle. Good luck playerone...\n");
                 printf("Enter numbers coresponding to first the field, the the element, then the value...\n");
-                printf("To end this session type ext . . .\n");
+                printf("To end this session type -1 -1 -1 . . .\n");
 
-                char in[3];
                 int d[3];
 
                 do
                 {
-                    scanf("%c%c%c", &in[0], &in[1], &in[2]);
-
-                    d[0] = in[0] - '0';
-                    d[1] = in[1] - '0';
-                    d[2] = in[2] - '0';
-
+                    scanf("%d %d %d", &d[0], &d[1], &d[2]);
+                    
                     if( (d[0] > -1) && (d[0] < 10) )
                     {
                         if( (d[1] > -1) && (d[1] < 10) )
@@ -560,8 +558,8 @@ int main(int argc, char *args[])
                             }
                         }
                     }
-
-                } while (!end(in));
+                    sprint(sboard);
+                } while (!end(d));
                 
                 printf("Saving present progress...\n");
 

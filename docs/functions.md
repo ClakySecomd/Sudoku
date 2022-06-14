@@ -36,3 +36,5 @@ The solving algorithm is based on a backtrack, that is why we set the first conf
 **13.** The method *isunique* checks if the current setting on the board has only 1 solution, since backtrack changes the values on the board it passes a dummy copy
 
 **14.** The method *end* checks if the user has requested to end the player mode session
+
+**15.** The method *sread* inputs the data from the passed file into the passed sudoku board
