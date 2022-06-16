@@ -485,6 +485,7 @@ int main(int argc, char *args[])
             FILE *w;
 
             sboard = malloc(9 * sizeof(field));
+            tmp = malloc(9 * sizeof(field));
 
             int bl;
             do{
@@ -492,9 +493,6 @@ int main(int argc, char *args[])
                 printf("Or press 2 to insert the values yourself...\n");
                 scanf("%d", &bl);
                 
-                int c;
-                while ( (c = getchar()) != EOF && c != '\n') { }
-
             }while( (bl != 1) && (bl != 2) );
             bl--;
             
@@ -540,6 +538,7 @@ int main(int argc, char *args[])
                 printf("To end this session type -1 -1 -1 . . .\n");
 
                 int d[3];
+                copy();
 
                 do
                 {
@@ -551,8 +550,16 @@ int main(int argc, char *args[])
                         {
                             if( (d[2] > -1) && (d[2] < 10) )
                             {
-                                if(sboard[d[0]].el[d[1]] == 0)
-                                    sboard[d[0]].el[d[1]] = d[2];
+                                if(sboard[d[0]].el[d[1]] == 0){
+                                    tmp[d[0]].el[d[1]] = d[2];
+
+                                    if(interference(tmp)) {
+                                        printf("Invalid move!\n");
+                                        tmp[d[0]].el[d[1]] = 0;
+                                    }
+                                    else
+                                        sboard[d[0]].el[d[1]] = d[2];
+                                }
                                 else
                                     printf("Invalid move!\n");
                             }
